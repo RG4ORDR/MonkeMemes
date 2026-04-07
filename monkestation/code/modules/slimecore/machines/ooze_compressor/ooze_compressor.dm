@@ -1,3 +1,4 @@
+/*
 #define CROSSBREED_BASE_PATHS list(\
 /datum/compressor_recipe/crossbreed/burning,\
 /datum/compressor_recipe/crossbreed/charged,\
@@ -265,3 +266,4 @@
 
 #undef MAX_EXTRACTS_ON_TILE
 #undef CROSSBREED_BASE_PATHS
+*/
