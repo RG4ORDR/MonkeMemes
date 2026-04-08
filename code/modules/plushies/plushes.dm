@@ -11,6 +11,11 @@
 	var/list/squeak_override //Weighted list; If you want your plush to have different squeak sounds use this
 	var/stuffed = TRUE //If the plushie has stuffing in it
 	var/obj/item/grenade/grenade //You can remove the stuffing from a plushie and add a grenade to it for *nefarious uses*
+	var/list/plush_traits = list()
+	var/list/starting_traits = list()
+	var/plush_flags
+	var/has_heartstring = TRUE
+	var/list/gets_random_traits = list(PLUSH_TRAIT_CATEGORY_PERSONALITY, PLUSH_TRAIT_CATEGORY_PHYSICALITY)
 	//--love ~<3--
 	gender = NEUTER
 	var/obj/item/toy/plush/lover
@@ -33,10 +38,13 @@
 	var/list/vowbroken_message
 	var/list/parent_message
 	var/normal_desc
+	var/emote_prob = 0.5 //it's definitely not crying you're just ascribing human emotions onto a toy like a child we promise (you killed its plushie wife and it is wailing mournfully)
 	//--end of love :'(--
 
 ///Unique pet message
 	var/pet_message
+///Plushie's parents
+	var/parentage
 
 /*
 ** If you add a new plushie please add it to the lists at both:
@@ -62,11 +70,42 @@
 	parent_message = list("[p_they(TRUE)] can't remember what sleep is.")
 
 	normal_desc = desc
+	if(starting_traits)
+		for(var/trait in starting_traits)
+			if(prob(starting_traits[trait]))
+				var/datum/plush_trait/new_trait = new trait()
+				plush_traits += new_trait
+				new_trait.activate(src)
+				if(new_trait.processes)
+					START_PROCESSING(SSobj, src)
+	addtimer(CALLBACK(src, PROC_REF(rand_traits)), 0.5 SECONDS) // god strike me down, this WORKS. Okay? it WORKS. shut up.
+
+
+/obj/item/toy/plush/proc/rand_traits() // god help me.
+	if(gets_random_traits && (maternal_parent == null))
+		var/list/traits_to_add = list()
+		for(var/the_category in gets_random_traits)
+			var/list/possibilities = list()
+			for(var/datum/plush_trait/trait as anything in subtypesof(/datum/plush_trait))
+				if((trait::category == the_category) && !(is_type_in_list(trait, plush_traits)) && !(is_type_in_list(trait, traits_to_add)) && (trait::tier == 1))
+					possibilities += trait
+			traits_to_add += pick(possibilities)
+		for(var/datum/plush_trait/trait_to_add as anything in traits_to_add)
+			var/datum/plush_trait/new_trait = new trait_to_add()
+			plush_traits += new_trait
+			new_trait.activate(src)
+			if(new_trait.processes)
+				START_PROCESSING(SSobj, src)
 
 /obj/item/toy/plush/Destroy()
 	QDEL_NULL(grenade)
 
 	//inform next of kin and... acquaintances
+	for(var/datum/plush_trait/trait_to_delete in plush_traits)
+		trait_to_delete.deactivate(src)
+		plush_traits -= trait_to_delete
+		qdel(trait_to_delete)
+
 	if(partner)
 		partner.bad_news(src)
 		partner = null
@@ -115,10 +154,22 @@
 		grenade = null
 	..()
 
+/obj/item/toy/plush/examine(mob/user)
+	. = ..()
+	if(has_heartstring == FALSE)
+		. += "\nIt looks deeply and apatheticaly sad, somehow. [span_hypnophrase("SOULLESS")], even."
+	if(mood_message)
+		. += "\n[mood_message]"
+	if(parentage)
+		. += "\n[parentage]"
+
+
 /obj/item/toy/plush/attack_self(mob/user)
 	. = ..()
 	if(stuffed || grenade)
 		to_chat(user, span_notice("[pet_message ? pet_message : "You pet [src]. D'awww."]"))
+		for(var/datum/plush_trait/thingy in plush_traits)
+			thingy.squeezed(src, user)
 		if(grenade && !grenade.active)
 			user.log_message("activated a hidden grenade in [src].", LOG_VICTIM)
 			grenade.arm_grenade(user, msg = FALSE, volume = 10)
@@ -126,7 +177,42 @@
 		to_chat(user, span_notice("You try to pet [src], but it has no stuffing. Aww..."))
 
 /obj/item/toy/plush/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
+	if(istype(attacking_item, /obj/item/heartstring) && !has_heartstring)
+		var/obj/item/heartstring/new_heartstring = attacking_item
+		if(new_heartstring.our_plush.resolve() != src)
+			to_chat(user, span_warning("You're trying to replace the essential soul and spirit of one plush with that of another, which is metaphysically impossible. You'll need to use [src]'s original bundle of Heart-strings."))
+			return
+		user.visible_message(span_notice("[user] begins inserting [new_heartstring] into [src]."), span_notice("You begin the delicate process of rejoining the Heart-string bundle of [src] with [p_their()] stuffing."))
+		if(do_after(user, 5 SECONDS, src))
+			for(var/datum/plush_trait/plush_trait in new_heartstring.shape_strings)
+				plush_traits += plush_trait
+				plush_trait.activate(src)
+				if(plush_trait.processes)
+					START_PROCESSING(SSobj, src)
+				new_heartstring.shape_strings.Remove(plush_trait)
+			user.visible_message(span_notice("[user] inserts [new_heartstring] into [src]. It looks happier, somehow."), span_notice("[src] seems happier with [p_their()] Heart-strings back."))
+			qdel(new_heartstring)
+			has_heartstring = TRUE
 	if(attacking_item.get_sharpness())
+		if(istype(attacking_item, /obj/item/heartstring_extractor))
+			if(has_heartstring)
+				user.visible_message(span_notice("[user] begins cutting into [src] with [attacking_item], attempting to remove [p_their()] Heart-strings."), span_notice("You begin to excise [src]'s Heart-strings."))
+				if(do_after(user, 3 SECONDS, src))
+					var/obj/item/heartstring/excised_heartstring = new(get_turf(src))
+					STOP_PROCESSING(SSobj, src)
+					for(var/datum/plush_trait/trait in plush_traits)
+						trait.deactivate(src)
+						plush_traits.Remove(trait)
+						excised_heartstring.shape_strings += trait
+					excised_heartstring.our_plush = WEAKREF(src)
+					has_heartstring = FALSE
+					return
+				else
+					return
+
+			else
+				to_chat(user, span_warning("[src] has no Heart-strings to excise!"))
+				return
 		if(!grenade)
 			if(!stuffed)
 				to_chat(user, span_warning("You already murdered it!"))
@@ -173,15 +259,29 @@
 		return
 	return ..()
 
+/obj/item/toy/plush/process(seconds_per_tick)
+	. = ..()
+	for(var/datum/plush_trait/trait in plush_traits)
+		if(trait.processes)
+			trait.process_trigger(src)
+
 /obj/item/toy/plush/proc/love(obj/item/toy/plush/Kisser, mob/living/user) //~<3
 	var/chance = 100 //to steal a kiss, surely there's a 100% chance no-one would reject a plush such as I?
 	var/concern = 20 //perhaps something might cloud true love with doubt
 	var/loyalty = 30 //why should another get between us?
 	var/duty = 50 //conquering another's is what I live for
-
+	if((PLUSH_FUGLY & Kisser.plush_flags) && !(PLUSH_KIND & plush_flags))
+		chance -= 50
 	//we are not catholic
 	if(young == TRUE || Kisser.young == TRUE)
 		user.show_message(span_notice("[src] plays tag with [Kisser]."), MSG_VISUAL,
+			span_notice("They're happy."), NONE)
+		Kisser.cheer_up()
+		cheer_up()
+
+	//nor are we incestuous.
+	if((Kisser.plush_child == src || plush_child == Kisser))
+		user.show_message(span_notice("[src] talks with [Kisser]."), MSG_VISUAL,
 			span_notice("They're happy."), NONE)
 		Kisser.cheer_up()
 		cheer_up()
@@ -199,44 +299,55 @@
 	else if(Kisser.lover != src && Kisser.partner != src) //cannot be lovers or married
 		if(Kisser.lover) //if the initiator has a lover
 			Kisser.lover.heartbreak(Kisser) //the old lover can get over the kiss-and-run whilst the kisser has some fun
+		if(!(Kisser.plush_flags & PLUSH_PROMISCUOUS))
 			chance -= concern //one heart already broken, what does another mean?
 		if(lover) //if the recipient has a lover
-			chance -= loyalty //mustn't... but those lips
+			if(!(plush_flags & PLUSH_PROMISCUOUS))
+				chance -= loyalty //mustn't... but those lips
 		if(partner) //if the recipient has a partner
-			chance -= duty //do we mate for life?
+			if(!(plush_flags & PLUSH_PROMISCUOUS))
+				chance -= duty //do we mate for life?
 
-		if(prob(chance)) //did we bag a date?
+		if(prob(clamp(chance, 0, 100))) //did we bag a date?
 			user.visible_message(span_notice("[user] makes [Kisser] kiss [src]!"),
 									span_notice("You make [Kisser] kiss [src]!"))
 			if(lover) //who cares for the past, we live in the present
 				lover.heartbreak(src)
 			new_lover(Kisser)
 			Kisser.new_lover(src)
+			new /obj/effect/temp_visual/heart(loc)
 		else
 			user.show_message(span_notice("[src] rejects the advances of [Kisser], maybe next time?"), MSG_VISUAL,
 								span_notice("That didn't feel like it worked, this time."), NONE)
-
+			new /obj/effect/temp_visual/annoyed(loc)
 	//then comes marriage
 	else if(Kisser.lover == src && Kisser.partner != src) //need to be lovers (assumes loving is a two way street) but not married (also assumes similar)
 		user.visible_message(span_notice("[user] pronounces [Kisser] and [src] married! D'aw."),
 									span_notice("You pronounce [Kisser] and [src] married!"))
 		new_partner(Kisser)
 		Kisser.new_partner(src)
+		new /obj/effect/temp_visual/heart(loc)
+		plush_emote("smiles.")
+		Kisser.plush_emote("smiles.")
 
 	//then comes a baby in a baby's carriage, or an adoption in an adoption's orphanage
 	else if(Kisser.partner == src && !plush_child) //the one advancing does not take ownership of the child and we have a one child policy in the toyshop
 		user.visible_message(span_notice("[user] is going to break [Kisser] and [src] by bashing them like that."),
-									span_notice("[Kisser] passionately embraces [src] in your hands. Look away you perv!"))
+									span_notice("[Kisser] passionately embraces [src] in your hands. Look away, you perv!"))
 		user.client.give_award(/datum/award/achievement/misc/rule8, user)
 		if(plop(Kisser))
 			user.visible_message(span_notice("Something drops at the feet of [user]."),
 							span_notice("The miracle of oh god did that just come out of [src]?!"))
+			new /obj/effect/temp_visual/heart(loc) //wuv
+			plush_emote("sighs happily.")
+			Kisser.plush_emote("sighs happily.")
 
 	//then comes protection, or abstinence if we are catholic
 	else if(Kisser.partner == src && plush_child)
 		user.visible_message(span_notice("[user] makes [Kisser] nuzzle [src]!"),
 									span_notice("You make [Kisser] nuzzle [src]!"))
-
+		plush_emote("smiles.")
+		Kisser.plush_emote("smiles.")
 	//then oh fuck something unexpected happened
 	else
 		user.show_message(span_warning("[Kisser] and [src] don't know what to do with one another."), NONE)
@@ -244,23 +355,23 @@
 /obj/item/toy/plush/proc/heartbreak(obj/item/toy/plush/Brutus)
 	if(lover != Brutus)
 		CRASH("plushie heartbroken by a plushie that is not their lover")
-
-	scorned.Add(Brutus)
-	Brutus.scorned_by(src)
+	mood_message = "[p_they(TRUE)] look bored."
+	if(!(plush_traits & PLUSH_STOIC))
+		scorned.Add(Brutus)
+		Brutus.scorned_by(src)
+		heartbroken = TRUE
+		mood_message = pick(heartbroken_message)
 
 	lover = null
 	Brutus.lover = null //feeling's mutual
 
-	heartbroken = TRUE
-	mood_message = pick(heartbroken_message)
-
 	if(partner == Brutus) //oh dear...
 		partner = null
 		Brutus.partner = null //it'd be weird otherwise
-		vowbroken = TRUE
-		mood_message = pick(vowbroken_message)
+		if(!(plush_traits & PLUSH_STOIC))
+			vowbroken = TRUE
+			mood_message = pick(vowbroken_message)
 
-	update_desc()
 
 /obj/item/toy/plush/proc/scorned_by(obj/item/toy/plush/Outmoded)
 	scorned_by.Add(Outmoded)
@@ -274,7 +385,6 @@
 	lover.cheer_up()
 
 	mood_message = pick(love_message)
-	update_desc()
 
 	if(partner) //who?
 		partner = null //more like who cares
@@ -292,7 +402,6 @@
 
 	partner_message = list("[p_they(TRUE)] [p_have()] a ring on [p_their()] finger! It says 'Bound to my dear [partner.name].'")
 	mood_message = pick(partner_message)
-	update_desc()
 
 /obj/item/toy/plush/proc/plop(obj/item/toy/plush/Daddy)
 	if(partner != Daddy)
@@ -306,6 +415,44 @@
 	else //it has your eyes
 		plush_child = new Daddy.type(get_turf(loc))
 
+	var/all_traits = subtypesof(/datum/plush_trait)
+
+	for(var/datum/plush_trait/inhereted in Daddy.plush_traits)
+		if(is_type_in_list(inhereted, plush_child.plush_traits))
+			continue
+
+		var/datum/plush_trait/added_trait = new inhereted.type()
+		plush_child.plush_traits += added_trait
+		added_trait.activate(plush_child)
+
+	for(var/datum/plush_trait/inhereted in plush_traits) // yes i know this is copied shut up
+		if(is_type_in_list(inhereted, plush_child.plush_traits))
+			continue
+
+		var/datum/plush_trait/added_trait = new inhereted.type()
+		plush_child.plush_traits += added_trait
+		added_trait.activate(plush_child)
+
+	for(var/datum/plush_trait/possible as anything in all_traits)
+		if(possible::recipe == list())
+			continue
+		var/could_we = TRUE
+		for(var/datum/plush_trait/needed in possible::recipe)
+			if(!is_type_in_list(needed, plush_child.plush_traits))
+				could_we = FALSE
+		if(is_type_in_list(possible, plush_child.plush_traits))
+			continue
+		if(could_we)
+			var/datum/plush_trait/created = new possible()
+			plush_child.plush_traits += created
+			created.activate(plush_child)
+			for(var/datum/plush_trait/consumed in plush_child.plush_traits)
+				if(is_type_in_list(consumed, possible::recipe))
+					consumed.deactivate(plush_child)
+					plush_child.plush_traits -= consumed
+					qdel(consumed)
+
+
 	plush_child.make_young(src, Daddy)
 
 /obj/item/toy/plush/proc/make_young(obj/item/toy/plush/Mama, obj/item/toy/plush/Dada)
@@ -315,15 +462,27 @@
 	maternal_parent = Mama
 	paternal_parent = Dada
 	young = TRUE
-	name = "[Mama.name] Jr" //Icelandic naming convention pending
-	normal_desc = "[src] [p_are()] a little baby of [maternal_parent] and [paternal_parent]!" //original desc won't be used so the child can have moods
+	var/mommy_or_daddy = pick(list(Mama.name, Dada.name))
+	var/iceland = replacetext(replacetext(mommy_or_daddy, " plushie", ""), "-", "")
+	var/nominative_gender = "child"
+	switch(src.gender)
+		if(MALE)
+			nominative_gender = "son"
+		if(FEMALE)
+			nominative_gender = "daughter"
+	name = "[iceland]-[nominative_gender]" //Icelandic naming convention no longer pending
+	parentage = "[src] [p_are()] the [nominative_gender] of [maternal_parent] and [paternal_parent]." //original desc won't be used so the child can have moods
 	transform *= 0.75
-	update_desc()
 
 	Mama.mood_message = pick(Mama.parent_message)
-	Mama.update_desc()
 	Dada.mood_message = pick(Dada.parent_message)
-	Dada.update_desc()
+
+/obj/item/toy/plush/proc/grow_up()
+	if(!young)
+		return
+	transform *= (4/3)
+	young = FALSE
+	visible_message(span_notice("[src] grows up."))
 
 /obj/item/toy/plush/proc/bad_news(obj/item/toy/plush/Deceased) //cotton to cotton, sawdust to sawdust
 	var/is_that_letter_for_me = FALSE
@@ -362,7 +521,7 @@
 	if(is_that_letter_for_me)
 		heartbroken = TRUE
 		mood_message = pick(heartbroken_message)
-		update_desc()
+		plush_emote("sobs quietly.") // very small chance for them to mcsob
 
 /obj/item/toy/plush/proc/cheer_up() //it'll be all right
 	if(!heartbroken)
@@ -371,10 +530,9 @@
 		return //it's a pretty big deal
 
 	heartbroken = !heartbroken
-
+	plush_emote("smiles.")
 	if(mood_message in heartbroken_message)
 		mood_message = null
-	update_desc()
 
 /obj/item/toy/plush/proc/heal_memories() //time fixes all wounds
 	if(!vowbroken)
@@ -383,11 +541,13 @@
 			mood_message = null
 	cheer_up()
 
-/obj/item/toy/plush/update_desc()
-	desc = normal_desc
-	. = ..()
-	if(mood_message)
-		desc += span_info("\n[mood_message]")
+/obj/item/toy/plush/proc/plush_emote(message, bonus_prob=0)
+	if(prob(clamp(emote_prob + bonus_prob, 0, 100)) || (plush_flags & PLUSH_EMOTIVE))
+		visible_message(message, visible_message_flags = EMOTE_MESSAGE)
+		if(!(plush_flags & PLUSH_EMOTIVE))
+			visible_message("Hold on, did [src] just...")
+		return TRUE
+	return FALSE
 
 /obj/item/toy/plush/carpplushie
 	name = "space carp plushie"
@@ -676,6 +836,7 @@
 	worn_icon_state = "plushie_h"
 	slot_flags = ITEM_SLOT_HEAD // Monkestation Edit
 	body_parts_covered = HEAD // Monkestation Edit
+	starting_traits = list(/datum/plush_trait/prickly = 25, /datum/plush_trait/ominous_levitation = 10)
 
 /obj/item/toy/plush/goatplushie
 	name = "strange goat plushie"
@@ -874,3 +1035,5 @@
 	icon_state = "donkpocket"
 	attack_verb_continuous = list("donks")
 	attack_verb_simple = list("donk")
+
+
