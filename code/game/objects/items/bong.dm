@@ -15,6 +15,7 @@
 	var/list_reagents = null
 	var/packeditem = FALSE
 	var/quarter_volume = 0
+	var/omega = FALSE
 
 /obj/item/bong/Initialize(mapload)
 	. = ..()
@@ -48,6 +49,9 @@
 	if(tool.reagents)
 		tool.reagents.trans_to(src, tool.reagents.total_volume, transfered_by = user)
 		quarter_volume = reagents.total_volume/useable_bonghits
+	if(istype(tool, /obj/item/food/grown/cannabis/ultimate))
+		omega = TRUE
+		to_chat(user, span_notice("The immense power of [tool] causes [src] to quiver, as if in fear of the immense dankness of [tool]."))
 	qdel(tool)
 	return ITEM_INTERACT_SUCCESS
 
@@ -64,6 +68,7 @@
 		new /obj/effect/decal/cleanable/ash(location)
 		packeditem = FALSE
 		bonghits = 0
+		omega = FALSE
 		reagents.clear_reagents()
 	return
 
@@ -84,12 +89,38 @@
 	var/turf/open/pos = get_turf(src)
 	if(istype(pos) && pos.air.return_pressure() < 2*ONE_ATMOSPHERE)
 		pos.atmos_spawn_air("water_vapor=10;TEMP=T20C + 20")
+		if(omega && iscarbon(user))
+			var/mob/living/carbon/fool = user
+			fool.visible_message(span_warning("As [fool] hits [src], a wave of dank energy flows forth from the omega weed inside it!"), span_danger("You feel an immense pressure, heralding a voice that rings inside your mind..."))
+			to_chat(fool, span_narsiesmall("Foolish [user], I laced yo shit..."))
+			fool.say("Fuuuuuuuck")
+			switch(rand(1, 5))
+				if(1)
+					fool.electrocute_act(50, src, flags = SHOCK_NOGLOVES)
+					fool.visible_message(span_danger("[fool] is surrounded by a violent electrical pulse!"), span_userdanger("ZZZZTTTT!"))
+				if(2)
+					fool.adjust_fire_stacks(20)
+					fool.adjustFireLoss(20)
+					fool.ignite_mob()
+				if(3)
+					fool.vomit(10, FALSE, TRUE)
+					fool.adjust_disgust(100)
+					fool.apply_status_effect(/datum/status_effect/no_gravity, 30 SECONDS)
+					fool.visible_message(span_warning("[fool] begins floating around!"), span_warning("You feel nauseous and weightless!"))
+				if(4)
+					fool.apply_status_effect(/datum/status_effect/freon/evil_bong)
+					fool.visible_message("[fool] is frozen in a giant block of ice!")
+					fool.adjustFireLoss(75)
+				if(5)
+					to_chat(fool, span_boldnotice("Your innies become outies!"))
+					fool.spill_organs(TRUE, FALSE, TRUE)
 	if(bonghits > 0)
 		return
 
 	to_chat(target_mob, "<span class='notice'>Your [name] goes out.</span>")
 	lit = FALSE
 	packeditem = FALSE
+	omega = FALSE
 	icon_state = icon_off
 	inhand_icon_state = icon_off
 	name = "[initial(name)]"
@@ -133,3 +164,7 @@
 				/obj/item/stack/sheet/glass = 10)
 	time = 2 SECONDS
 	category = CAT_CHEMISTRY
+
+/datum/status_effect/freon/evil_bong
+	duration = 30 SECONDS
+	can_melt = FALSE
