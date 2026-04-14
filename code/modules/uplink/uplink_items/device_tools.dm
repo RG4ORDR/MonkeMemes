@@ -303,7 +303,7 @@
 	desc = "A contract abusing a loophole found by plasmamen to invade halls with harmful gases \
 			without repercussion or warning, garnering no attention from any higher powers. \
 			Has to be signed by purchaser to be considered valid."
-	purchasable_from = ~(UPLINK_NUKE_OPS | UPLINK_CLOWN_OPS)
+	purchasable_from = ~(UPLINK_NUKE_OPS | UPLINK_CLOWN_OPS | UPLINK_SPY)
 	item = /obj/item/card/plasma_license
 	cost = 20
 
@@ -337,7 +337,7 @@
 	item = /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/minipea
 	cost = 8
 	surplus = 0 // cant get tank anyways
-	purchasable_from = ~(UPLINK_NUKE_OPS | UPLINK_CLOWN_OPS)
+	purchasable_from = ~(UPLINK_NUKE_OPS | UPLINK_CLOWN_OPS | UPLINK_SPY)
 
 /datum/uplink_item/device_tools/devitt
 	name = "Devitt Mk3 Light Tank"
@@ -345,7 +345,7 @@
 	item = /obj/vehicle/sealed/mecha/devitt
 	cost = 40
 	surplus = 0 // Two person item
-	purchasable_from = ~(UPLINK_NUKE_OPS | UPLINK_CLOWN_OPS)
+	purchasable_from = ~(UPLINK_NUKE_OPS | UPLINK_CLOWN_OPS | UPLINK_SPY)
 
 /datum/uplink_item/device_tools/dehy_carp
 	name = "Dehydrated Space Carp"
