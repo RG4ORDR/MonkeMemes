@@ -1064,6 +1064,9 @@
 /mob/living/carbon/human/species/skeleton
 	race = /datum/species/skeleton
 
+/mob/living/carbon/human/species/skeleton/fragile
+	race = /datum/species/skeleton/fragile
+
 /mob/living/carbon/human/species/snail
 	race = /datum/species/snail
 
@@ -1072,6 +1075,9 @@
 
 /mob/living/carbon/human/species/zombie
 	race = /datum/species/zombie
+
+/mob/living/carbon/human/species/zombie/fragile
+	race = /datum/species/zombie/fragile
 
 /mob/living/carbon/human/species/zombie/infectious
 	race = /datum/species/zombie/infectious
