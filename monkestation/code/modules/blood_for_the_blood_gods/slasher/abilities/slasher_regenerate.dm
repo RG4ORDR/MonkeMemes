@@ -4,7 +4,7 @@
 
 	button_icon_state = "regenerate"
 
-	cooldown_time = 80 SECONDS
+	cooldown_time = 60 SECONDS
 
 
 /datum/action/cooldown/slasher/regenerate/Activate(atom/target)
