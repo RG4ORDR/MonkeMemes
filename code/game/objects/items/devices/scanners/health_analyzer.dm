@@ -32,6 +32,8 @@
 	var/scanmode = SCANMODE_HEALTH
 	/// Advanced health analyzer
 	var/advanced = FALSE
+	/// Scans from a distance
+	var/works_from_distance = FALSE
 	/// If this analyzer will give a bonus to wound treatments apon woundscan.
 	var/give_wound_treatment_bonus = FALSE
 	var/last_scan_text
@@ -530,10 +532,38 @@
 	to_chat(user, mode == SCANNER_VERBOSE ? "The scanner now shows specific limb damage." : "The scanner no longer shows limb damage.")
 	return CLICK_ACTION_SUCCESS
 
+	// Long range
+/obj/item/healthanalyzer/ranged_interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
+	if(!HAS_TRAIT(interacting_with, TRAIT_COMBAT_MODE_SKIP_INTERACTION) && can_see(user, interacting_with, 15))
+		if(istype(interacting_with, /mob/living))
+			if((get_dist(user, interacting_with) > 1) && works_from_distance)
+				interacting_with.Beam(user, icon_state = "med_scan", time = 5)
+				playsound(src, 'sound/items/pip.ogg', 25, FALSE, 2)
+			return attack(interacting_with, user)
+
+/obj/item/healthanalyzer/ranged_interact_with_atom_secondary(atom/interacting_with, mob/living/user, list/modifiers)
+	if(!HAS_TRAIT(interacting_with, TRAIT_COMBAT_MODE_SKIP_INTERACTION) && can_see(user, interacting_with, 15))
+		if(istype(interacting_with, /mob/living))
+			if((get_dist(user, interacting_with) > 1) && works_from_distance)
+				interacting_with.Beam(user, icon_state = "med_scan", time = 5)
+				playsound(src, 'sound/items/pip.ogg', 25, FALSE, 2)
+			return attack_secondary(interacting_with, user, modifiers)
+
+
+/obj/item/healthanalyzer/range
+	name = "remote health analyzer"
+	desc = "A hand-held medical scanner for detecting patient's vital signs from a distance. Limited edition from NT medical department."
+	icon = 'icons/obj/advanced_device.dmi'
+	icon_state = "health_range"
+	works_from_distance = TRUE
+	custom_premium_price = PAYCHECK_CREW * 6
+
 /obj/item/healthanalyzer/advanced
 	name = "advanced health analyzer"
+	icon = 'icons/obj/advanced_device.dmi'
 	icon_state = "health_adv"
 	desc = "A hand-held body scanner able to distinguish vital signs of the subject with high accuracy."
+	works_from_distance = TRUE
 	advanced = TRUE
 
 #define AID_EMOTION_NEUTRAL "neutral"
@@ -577,6 +607,11 @@
 
 //Cyborgs can use an integrated health analyzer even if they cant see
 /obj/item/healthanalyzer/cyborg
+	name = "remote health analyzer"
+	desc = "A hand-held medical scanner for detecting patient's vital signs from a distance. Limited edition from NT medical department."
+	icon = 'icons/obj/advanced_device.dmi'
+	icon_state = "health_range"
+	works_from_distance = TRUE
 
 /obj/item/healthanalyzer/cyborg/attack_self(mob/user)
 	if(!user.can_read(src, READING_CHECK_LITERACY))

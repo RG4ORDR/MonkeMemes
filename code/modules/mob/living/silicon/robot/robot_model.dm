@@ -721,6 +721,7 @@
 		/obj/item/circular_saw, //Monke edit end: remove augment tools
 		/obj/item/bonesetter,
 		/obj/item/blood_filter,
+		/obj/item/breathing_bag, // MS: biocore-ambu
 		/obj/item/extinguisher/mini,
 		/obj/item/emergency_bed/silicon,
 		/obj/item/borg/cyborghug/medical,
