@@ -16,7 +16,7 @@
 				attacker.balloon_alert(attacker, "you grab them aggressively by the neck!")
 				defender.balloon_alert(defender, "you are grabbed aggressively by the neck!")
 				defender.stop_pulling()
-				COOLDOWN_START(src, grabby_cd, 15 SECONDS)
+				COOLDOWN_START(src, grabby_cd, 1 SECONDS)
 				if(grab_attack)
 					log_combat(attacker, defender, "grabbed", addition="aggressively")
 					defender.visible_message(span_warning("[attacker] violently grabs [defender]!"), \
