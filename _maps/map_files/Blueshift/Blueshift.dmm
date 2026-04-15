@@ -12058,7 +12058,8 @@
 	},
 /obj/machinery/door/window/elevator/left/directional/east{
 	elevator_mode = 1;
-	elevator_linked_id = "publicElevator"
+	transport_linked_id = "publicElevator";
+	req_access = null
 	},
 /obj/machinery/button/elevator{
 	id = "publicElevator";
@@ -15718,7 +15719,7 @@
 	},
 /area/station/security/brig)
 "cWl" = (
-/obj/structure/industrial_lift/public,
+/obj/structure/transport/linear/public,
 /obj/structure/railing{
 	dir = 1
 	},
@@ -18053,7 +18054,7 @@
 /area/station/maintenance/cult_chapel_maint)
 "duF" = (
 /obj/effect/turf_decal/caution/stand_clear,
-/obj/structure/industrial_lift/public,
+/obj/structure/transport/linear/public,
 /obj/structure/railing,
 /obj/machinery/elevator_control_panel/directional/south{
 	linked_elevator_id = "publicElevator";
@@ -35955,9 +35956,10 @@
 /obj/effect/turf_decal/stripes/white/line{
 	dir = 4
 	},
-/obj/machinery/door/window/elevator/right/directional/east{
+/obj/machinery/door/window/elevator/left/directional/east{
 	elevator_mode = 1;
-	elevator_linked_id = "publicElevator"
+	transport_linked_id = "publicElevator";
+	req_access = null
 	},
 /turf/open/floor/iron/dark,
 /area/station/hallway/primary/upper)
@@ -37192,7 +37194,7 @@
 	},
 /area/station/hallway/primary/port)
 "hgU" = (
-/obj/structure/industrial_lift/public,
+/obj/structure/transport/linear/public,
 /obj/structure/railing,
 /turf/open/floor/plating/elevatorshaft,
 /area/station/hallway/primary/central)
@@ -39545,7 +39547,9 @@
 	linked_elevator_id = "publicElevator"
 	},
 /obj/machinery/light/directional/north,
-/obj/machinery/door/window/elevator/left/directional/west,
+/obj/machinery/door/window/elevator/right/directional/west{
+	req_access = null
+	},
 /turf/open/floor/iron/dark,
 /area/station/hallway/primary/central)
 "hES" = (
@@ -64433,9 +64437,8 @@
 /obj/effect/turf_decal/stripes/white/line{
 	dir = 4
 	},
-/obj/machinery/door/window/elevator/left/directional/east{
-	elevator_mode = 1;
-	elevator_linked_id = "publicElevator"
+/obj/machinery/door/window/elevator/right/directional/east{
+	req_access = null
 	},
 /turf/open/floor/iron/dark,
 /area/station/hallway/primary/central)
@@ -87022,7 +87025,9 @@
 /obj/effect/turf_decal/stripes/white/line{
 	dir = 8
 	},
-/obj/machinery/door/window/elevator/right/directional/west,
+/obj/machinery/door/window/elevator/right/directional/west{
+	req_access = null
+	},
 /turf/open/floor/iron/dark,
 /area/station/hallway/primary/central)
 "qOZ" = (
@@ -99855,9 +99860,9 @@
 /area/station/security/courtroom)
 "tli" = (
 /obj/effect/turf_decal/caution/stand_clear,
-/obj/structure/industrial_lift/public,
-/obj/effect/landmark/lift_id{
-	specific_lift_id = "publicElevator"
+/obj/structure/transport/linear/public,
+/obj/effect/landmark/transport/transport_id{
+	specific_transport_id = "publicElevator"
 	},
 /obj/structure/railing{
 	dir = 1
@@ -104670,7 +104675,8 @@
 	},
 /obj/machinery/door/window/elevator/right/directional/west{
 	elevator_mode = 1;
-	elevator_linked_id = "publicElevator"
+	transport_linked_id = "publicElevator";
+	req_access = null
 	},
 /turf/open/floor/iron/dark,
 /area/station/hallway/primary/upper)
@@ -105690,9 +105696,10 @@
 /obj/effect/turf_decal/stripes/white/line{
 	dir = 8
 	},
-/obj/machinery/door/window/elevator/left/directional/west{
+/obj/machinery/door/window/elevator/right/directional/west{
 	elevator_mode = 1;
-	elevator_linked_id = "publicElevator"
+	transport_linked_id = "publicElevator";
+	req_access = null
 	},
 /turf/open/floor/iron/dark,
 /area/station/hallway/primary/upper)
@@ -108374,7 +108381,9 @@
 	linked_elevator_id = "publicElevator"
 	},
 /obj/machinery/light/directional/north,
-/obj/machinery/door/window/elevator/right/directional/east,
+/obj/machinery/door/window/elevator/right/directional/east{
+	req_access = null
+	},
 /turf/open/floor/iron/dark,
 /area/station/hallway/primary/central)
 "uQl" = (
