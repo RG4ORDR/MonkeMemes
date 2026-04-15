@@ -32,32 +32,26 @@
 		ui.set_autoupdate(FALSE)
 		ui.open()
 
+/datum/lootpanel/ui_host(mob/user)
+	return source_turf
+
 /datum/lootpanel/ui_close(mob/user)
-	. = ..()
+	UnregisterSignal(source_turf, list(COMSIG_ATOM_ENTERED, COMSIG_ATOM_AFTER_SUCCESSFUL_INITIALIZED_ON))
 	source_turf = null
 	reset_contents()
 
 /datum/lootpanel/ui_data(mob/user)
-	return list(
-		"contents" = get_contents(),
-		"is_blind" = !!user.is_blind(),
-		"searching" = length(to_image),
-	)
+	var/list/data = list()
+	data["contents"] = get_contents()
+	data["is_blind"] = !!user.is_blind()
+	data["searching"] = length(to_image)
+	return data
 
-/datum/lootpanel/ui_status(mob/user, datum/ui_state/state)
-	if(user.incapacitated())
-		return UI_DISABLED
-
-	return UI_INTERACTIVE
 
 /datum/lootpanel/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()
 	if(.)
 		return
 
-	switch(action)
-		if("grab")
-			return grab(ui.user, params)
-		if("refresh")
-			return populate_contents()
-	return FALSE
+	if(action == "grab")
+		return grab(usr, params)
