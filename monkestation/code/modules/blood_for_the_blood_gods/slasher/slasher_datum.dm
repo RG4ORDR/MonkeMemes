@@ -115,7 +115,6 @@
 	slasher_monitor.show_hud(owner.current)
 
 	ADD_TRAIT(current_mob, TRAIT_BATON_RESISTANCE, "slasher")
-	ADD_TRAIT(current_mob, TRAIT_CLUMSY, "slasher")
 	ADD_TRAIT(current_mob, TRAIT_ILLITERATE, "slasher")
 	ADD_TRAIT(current_mob, TRAIT_LIMBATTACHMENT, "slasher")
 	ADD_TRAIT(current_mob, TRAIT_SLASHER, "slasher")
@@ -124,6 +123,8 @@
 	ADD_TRAIT(current_mob, TRAIT_RESISTCOLD, "slasher")
 	ADD_TRAIT(current_mob, TRAIT_RESISTLOWPRESSURE, "slasher")
 	ADD_TRAIT(current_mob, TRAIT_RESISTHIGHPRESSURE, "slasher")
+	ADD_TRAIT(current_mob, TRAIT_PUSHIMMUNE, "slasher")
+	ADD_TRAIT(current_mob, TRAIT_PUSHIMMUNE, "slasher")
 
 	var/mob/living/carbon/carbon = current_mob
 	var/obj/item/organ/internal/eyes/slasher/eye = new
